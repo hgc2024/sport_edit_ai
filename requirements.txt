@@ -6,3 +6,8 @@ streamlit
 chromadb
 # Ollama integration usually handled via langchain-community or langchain-ollama
 langchain-ollama
+fastapi
+uvicorn
+python-multipart
+flask_cors
+

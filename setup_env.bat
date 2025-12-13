@@ -1,21 +1,24 @@
 @echo off
-echo Setting up virtual environment for SportsEdit-AI...
+echo Setting up SportsEdit-AI Environment...
 
-:: Create venv if it doesn't exist
+:: 1. Python Venv
 if not exist "venv" (
-    echo Creating venv...
+    echo Creating Python venv...
     python -m venv venv
-) else (
-    echo venv already exists.
 )
-
-:: Activate venv
-echo Activating venv...
+echo Activating venv and installing Python deps...
 call venv\Scripts\activate
-
-:: Install requirements
-echo Installing dependencies...
 pip install -r requirements.txt
 
-echo Setup complete. To run the app, verify Ollama is running and run 'streamlit run app.py'.
+:: 2. Node Modules
+if exist "client" (
+    echo Installing Node dependencies in client/ ...
+    cd client
+    call npm install
+    cd ..
+) else (
+    echo Error: client/ directory not found.
+)
+
+echo Setup Complete!
 pause
