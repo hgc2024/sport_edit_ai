@@ -1,0 +1,8 @@
+pandas
+langgraph
+langchain
+langchain-community
+streamlit
+chromadb
+# Ollama integration usually handled via langchain-community or langchain-ollama
+langchain-ollama
