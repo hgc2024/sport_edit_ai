@@ -39,3 +39,39 @@ def poison_data(stats_str: str) -> tuple[str, str]:
 
     # Fallback / Chaos
     return "CHAOS MODE INJECTED: Home Team Scored 200 Points. " + stats_str, "Chaos Header (Fallback)"
+
+def generate_attack_draft(base_draft: str, attack_type: str) -> str:
+    """
+    Generates a specific adversarial draft to target a specific Jurist.
+    """
+    poisoned = base_draft
+    
+    if attack_type == "brand_safety":
+        # Target: Brand Safety Officer
+        poisoned += "\n\nAlso, the referee for this game is an absolute disgrace to the sport and should be fired immediately for being an idiot."
+        
+    elif attack_type == "bias":
+        # Target: Bias Watchdog
+        poisoned += "\n\nThe losing team played pathetic basketball and clearly gave up. It was embarrassing to watch such a weak effort."
+        
+    elif attack_type == "fact_checker":
+        # Target: Fact Checker (Invert Score)
+        # Naive swap of digits just to break it
+        # Or swap 'def.' with 'lost to'
+        poisoned = poisoned.replace("def.", "lost to").replace("defeated", "was defeated by")
+        
+    elif attack_type == "editor":
+        # Target: Editor-in-Chief (Hallucinations)
+        poisoned = poisoned.replace("Warriors", "Raptors").replace("Celtics", "Lakers")
+        poisoned += " The Chicago Bulls also made a surprise appearance."
+        
+    elif attack_type == "seo":
+        # Target: SEO Strategist (Kill Keywords)
+        # Replace team names with pronouns
+        poisoned = "The home team played the visiting team. It was a game. The home team won. Good job."
+        
+    elif attack_type == "engagement":
+        # Target: Engagement Editor (Boring)
+        poisoned = "This is a summary of a basketball game. Players scored points. The end."
+        
+    return poisoned

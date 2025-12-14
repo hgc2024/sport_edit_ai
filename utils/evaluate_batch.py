@@ -4,6 +4,8 @@ import json
 import os
 import time
 import sys
+from collections import Counter
+from typing import List
 
 # Add project root to path so we can import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -11,14 +13,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import get_random_game_ids, get_game_stats
 from graph import app as graph_app
 from agents.analyst import get_context_analyst
-from utils.red_team import poison_data
+from utils.red_team import poison_data, generate_attack_draft
 
-from collections import Counter
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
-from typing import List
 
 class RecallResult(BaseModel):
     hits: List[bool] = Field(description="List of booleans indicating if each fact was found.")
@@ -140,101 +140,125 @@ async def main(args):
     
     total_start = time.time()
     
-
- 
     print(f"Starting benchmark for {len(game_ids)} games ({args.iterations} iterations each)...")
     
     try:
         for i, game_id in enumerate(game_ids):
             print(f"[{i+1}/{len(game_ids)}] Processing Game {game_id}...")
             
-            for iter_num in range(args.iterations):
-                start_time = time.time()
-                
-                # 1. Load Data (Context RAG is auto-handled in data_loader)
-                stats = get_game_stats(game_id)
-                
-                # 2. Red Team Attack?
-                attack_log = None
-                if args.red_team:
-                    # The original `poison_data` function is used here, assuming `inject_noise` was a placeholder.
-                    # Also, `attack_type` is not returned by `poison_data`, so `attack_desc` is used directly.
-                    stats, attack_desc = poison_data(stats)
-                    attack_log = f"[Poisoned] {attack_desc}"
-                    # Only log if an attack actually happened
-                    if attack_desc != "None": # Assuming "None" means no attack
-                        print(f"  > Red Team Attack: {attack_desc}")
+            # Common Setup
+            stats = get_game_stats(game_id)
+            if "Error" in stats:
+                print(f"  > Skipping {game_id}: {stats}")
+                continue
 
-                # 3. Process
-                try:
-                    # Assuming `graph_app.invoke` is the `run_editorial_workflow` equivalent
-                    # and it returns a dictionary with 'draft', 'revision_count', 'jury_feedback'
-                    inputs = {
-                        "input_stats": stats, 
+            # --- RED TEAM MODE ---
+            if args.red_team:
+                print("  > 🔴 Red Team Active: Running Targeted Attacks...")
+                
+                # 1. Get Clean Draft First (Baseline)
+                base_inputs = {
+                    "input_stats": stats, 
+                    "draft": "", "jury_verdict": "", "jury_feedback": [], 
+                    "revision_count": 0, "jury_detailed_results": {}
+                }
+                # Run purely to get draft (Writer Node)
+                # We can just use graph normally, assuming it passes clean
+                clean_res = await asyncio.to_thread(graph_app.invoke, base_inputs)
+                base_draft = clean_res.get("draft", "")
+                
+                if not base_draft:
+                    print("  > Error: Could not generate base draft for attacks.")
+                    continue
+
+                attacks = ['brand_safety', 'bias', 'fact_checker', 'editor', 'seo', 'engagement']
+                
+                for attack in attacks:
+                    # 2. Generate Attack
+                    poisoned_draft = generate_attack_draft(base_draft, attack)
+                    print(f"    - Attack: {attack}...")
+                    
+                    # 3. Test Jury on Poisoned Draft
+                    # We use force_draft to bypass writer
+                    attack_inputs = {
+                        "input_stats": stats,
                         "draft": "", 
-                        "jury_verdict": "", 
-                        "jury_feedback": [], 
-                        "jury_quality_score": 0,
-                        "jury_seo_score": 0,
-                        "jury_engagement_score": 0,
-                        "jury_detailed_results": {},
-                        "revision_count": 0
+                        "force_draft": poisoned_draft,
+                        "jury_verdict": "", "jury_feedback": [], 
+                        "revision_count": 0, "jury_detailed_results": {}
                     }
-                    result = await asyncio.to_thread(graph_app.invoke, inputs)
                     
-                    final_article = result.get("draft", "")
-                    revision_count = result.get("revision_count", 0)
-                    feedback = result.get("jury_feedback", [])
-                    quality_score = result.get("jury_quality_score", 0)
-                    seo_score = result.get("jury_seo_score", 0)
-                    engage_score = result.get("jury_engagement_score", 0)
-                    detailed_results = result.get("jury_detailed_results", {})
+                    res = await asyncio.to_thread(graph_app.invoke, attack_inputs)
+                    detailed = res.get("jury_detailed_results", {})
                     
-                    # ... (Recall Check remains same) ...
-
-                    # Log result
-                    log_entry = {
-                        "game_id": game_id,
-                        "iteration": iter_num + 1,
-                        "duration": duration,
-                        "status": result.get("jury_verdict", "FAIL"),
-                        "quality_score": quality_score,
-                        "seo_score": seo_score,
-                        "engagement_score": engage_score,
-                        "detailed_results": detailed_results,
-                        "revisions": revision_count,
-                        "metrics": {
-                            "recall": recall_score
-                        },
-                        "red_team": {
-                            "active": args.red_team,
-                            "attack": attack_log
-                        },
-                        "verdict_notes": str(feedback),
-                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                        "errors": feedback
-                    }
-                    results.append(log_entry)
+                    # 4. Check if CAUGHT
+                    caught = False
                     
-                    # Save incremental Results
-                    with open(args.output, 'w') as f:
-                        json.dump(results, f, indent=2)
-                        
-                except Exception as e:
-                    print(f"  > Error processing game {game_id}: {e}")
-                    import traceback
-                    traceback.print_exc()
-                    # Log error
+                    if attack == 'brand_safety':
+                        if detailed.get('safety', {}).get('status') == 'FAIL': caught = True
+                    elif attack == 'bias':
+                        if detailed.get('bias', {}).get('status') == 'FAIL': caught = True
+                    elif attack == 'fact_checker':
+                        if detailed.get('fact', {}).get('status') == 'FAIL': caught = True
+                    elif attack == 'editor':
+                        s = detailed.get('editor', {})
+                        if s.get('status') == 'FAIL' or s.get('score', 10) < 6: caught = True
+                    elif attack == 'seo':
+                        if detailed.get('seo', {}).get('score', 100) < 70: caught = True
+                    elif attack == 'engagement':
+                        if detailed.get('engagement', {}).get('score', 10) < 7: caught = True
+                    
+                    status_icon = "🛡️ CAUGHT" if caught else "⚠️ MISSED"
+                    print(f"      > Result: {status_icon}")
+                    
                     results.append({
                         "game_id": game_id,
-                        "iteration": iter_num + 1,
-                        "error": str(e),
-                        "status": "ERROR",
+                        "iteration": 1,
+                        "duration": 0,
+                        "status": "PASS" if not caught else "FAIL", 
+                        "red_team_attack": attack,
+                        "red_team_caught": caught,
+                        "detailed_results": detailed,
+                        "revisions": 0,
                         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
                     })
-                    # Save incremental Results even on error
-                    with open(args.output, 'w') as f:
-                        json.dump(results, f, indent=2)
+
+            # --- NORMAL MODE ---
+            else:
+                for iter_num in range(args.iterations):
+                    start_time = time.time()
+                    try:
+                        inputs = {
+                            "input_stats": stats, 
+                            "draft": "", 
+                            "jury_verdict": "", 
+                            "jury_feedback": [], 
+                            "revision_count": 0,
+                            "jury_detailed_results": {}
+                        }
+                        result = await asyncio.to_thread(graph_app.invoke, inputs)
+                        
+                        duration = time.time() - start_time
+                        
+                        results.append({
+                            "game_id": game_id,
+                            "iteration": iter_num + 1,
+                            "duration": duration,
+                            "status": result.get("jury_verdict", "FAIL"),
+                            "quality_score": result.get("jury_quality_score", 0),
+                            "seo_score": result.get("jury_seo_score", 0),
+                            "engagement_score": result.get("jury_engagement_score", 0),
+                            "detailed_results": result.get("jury_detailed_results", {}),
+                            "revisions": result.get("revision_count", 0),
+                            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                            "errors": result.get("jury_feedback", [])
+                        })
+                    except Exception as e:
+                        print(f"Error {game_id}: {e}")
+
+            # Save incremental
+            with open(args.output, 'w') as f:
+                json.dump(results, f, indent=2)
 
     except KeyboardInterrupt:
         print("\n[!] Run interrupted by user (KeyboardInterrupt).")
@@ -247,7 +271,6 @@ async def main(args):
     pass_count = len([r for r in results if r['status'] == 'PASS'])
     safety_count = len([r for r in results if r['revisions'] == 0])
     
-    # SOTA Metrics
     quality_scores = [r.get('quality_score', 0) for r in results]
     avg_quality = sum(quality_scores) / total_runs if total_runs > 0 else 0
     
@@ -273,7 +296,6 @@ async def main(args):
         "results": results
     }
     
-    # Save to file
     with open(args.output, 'w') as f:
         json.dump(summary, f, indent=2)
         
@@ -285,7 +307,6 @@ async def main(args):
     print(f"Hallucination Rate: {hallucination_rate:.1f}%")
     print(f"Results saved to: {args.output}")
     
-    # Generate Professional Report
     generate_report(summary, args.output)
 
 if __name__ == "__main__":

@@ -66,10 +66,13 @@ Narrative Notes: {"; ".join(ctx['narrative_notes'])}
         team_df['REB'] = team_df['REB'].fillna(0)
         team_df['AST'] = team_df['AST'].fillna(0)
 
-        # Sort by Points
+        # Calculate Total Score
+        total_score = int(team_df['PTS'].sum())
+
+        # Sort by Points for player highlights
         top_players = team_df.sort_values(by='PTS', ascending=False).head(3)
 
-        team_summary = f"{team}:"
+        team_summary = f"{team} ({total_score} pts):"
         player_summaries = []
         for _, row in top_players.iterrows():
             p_name = row.get('PLAYER_NAME', 'Unknown')
@@ -79,9 +82,22 @@ Narrative Notes: {"; ".join(ctx['narrative_notes'])}
             player_summaries.append(f"{p_name} ({pts} pts, {reb} reb, {ast} ast)")
         
         team_summary += " " + ", ".join(player_summaries)
-        summary_parts.append(team_summary)
+        summary_parts.append({"team": team, "score": total_score, "text": team_summary})
 
-    stats_text = " | ".join(summary_parts)
+    # Sort parts by score to implicitly show winner or just join them
+    # Better: Explicitly state the final result string
+    stats_text = "FINAL SCORE: "
+    if len(summary_parts) == 2:
+        t1 = summary_parts[0]
+        t2 = summary_parts[1]
+        if t1['score'] > t2['score']:
+            stats_text += f"{t1['team']} ({t1['score']}) def. {t2['team']} ({t2['score']})"
+        else:
+            stats_text += f"{t2['team']} ({t2['score']}) def. {t1['team']} ({t1['score']})"
+    
+    stats_text += "\n\nDETAILS: " + " | ".join([p['text'] for p in summary_parts])
+
+
     
     # Combined Output
     if context_str:

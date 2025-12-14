@@ -7,12 +7,21 @@ from agents.jury import get_fact_checker, get_editor_in_chief, get_bias_watchdog
 class AgentState(TypedDict):
     input_stats: str
     draft: str
+    force_draft: str # Optional: For Red Teaming to bypass writer
     # Aggregate Jury Results
     jury_verdict: str # PASS or FAIL
     jury_feedback: List[str] 
     revision_count: int
+    jury_quality_score: int
+    jury_seo_score: int
+    jury_engagement_score: int
+    jury_detailed_results: dict
 
 def writer_node(state: AgentState):
+    # RED TEAM BYPASS
+    if state.get("force_draft"):
+        return {"draft": state['force_draft'], "revision_count": state.get("revision_count", 0) + 1}
+
     chain = get_writer_chain()
     input_text = state['input_stats']
     
