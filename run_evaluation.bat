@@ -6,7 +6,7 @@ if not exist "venv" (
 )
 
 echo Starting SportsEdit-AI Benchmark...
-echo Usage: run_evaluation.bat [--batch_size N] [--iterations N] [--type playoff/regular/all]
+echo Usage: run_evaluation.bat [--batch_size N] [--iterations N] [--type playoff/regular/all] [--red_team] [--recall]
 echo ----------------------------------------------------------------------------------------
 
 call venv\Scripts\activate
