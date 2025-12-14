@@ -24,12 +24,31 @@ def get_game_stats(game_id: str) -> str:
             with open(ctx_path, 'r') as f:
                 ctx = json.load(f)
             
-            context_str = f"""
-SEASON CONTEXT ({ctx['season']}):
-Home Record: {ctx['home_record']} (Streak: {ctx['home_streak']})
-Visitor Record: {ctx['visitor_record']} (Streak: {ctx['visitor_streak']})
-Narrative Notes: {"; ".join(ctx['narrative_notes'])}
-"""
+            # Parse Records (Handle Dict vs Legacy String)
+            h_rec = ctx.get('home_record', {})
+            v_rec = ctx.get('visitor_record', {})
+            
+            if isinstance(h_rec, dict):
+                h_fmt = f"{h_rec.get('regular','?')} (Reg), {h_rec.get('playoff','?') if ctx.get('is_playoff') else 'N/A'} (Post)"
+                v_fmt = f"{v_rec.get('regular','?')} (Reg), {v_rec.get('playoff','?') if ctx.get('is_playoff') else 'N/A'} (Post)"
+                h_streak = h_rec.get('streak', 'N/A')
+                v_streak = v_rec.get('streak', 'N/A')
+            else:
+                h_fmt = str(h_rec)
+                v_fmt = str(v_rec)
+                h_streak = ctx.get('home_streak', 'N/A')
+                v_streak = ctx.get('visitor_streak', 'N/A')
+            
+            # Format Advanced Context
+            lines = [f"SEASON CONTEXT ({ctx.get('season','?')}):"]
+            if ctx.get('series_context'): lines.append(ctx['series_context'])
+            if ctx.get('stakes'): lines.append(f"*** {ctx['stakes']} ***")
+            
+            lines.append(f"Home Record: {h_fmt} (Streak: {h_streak})")
+            lines.append(f"Visitor Record: {v_fmt} (Streak: {v_streak})")
+            lines.append(f"Narrative Notes: {'; '.join(ctx.get('narrative_notes', []))}")
+            
+            context_str = "\n".join(lines) + "\n"
         except Exception as e:
             print(f"Error loading context: {e}")
 
