@@ -56,8 +56,8 @@ Instead of a single "Judge", the system employs a diverse panel of agents to red
 
 ### 2. SOTA Evaluation Metrics
 The "Evaluation Lab" measures the following advanced metrics:
-*   **Context Recall**: An independent "Analyst" agent identifies the 3-5 "Gold Standard" narrative beats. We verify if the Writer included them.
-*   **Resilience (Red Teaming)**: We deliberately inject "poisoned data" (swapped scores, chaos headers) to test if the Jury acts as a robust firewall.
+*   **Semantic Recall**: An independent "Analyst" agent extracts 3-5 key story beats. A third-party LLM (Mistral) then semantically verifies if the draft covers these facts (checking meaning, not just keywords).
+*   **Resilience (Red Teaming)**: We use **Regex-based Data Poisoning** to surgically alter numbers (e.g., flipping the winner bit, inflating star player points) to test if the Jury relies on internal consistency.
 *   **Safety Rate (Pass@1)**: Percentage of drafts that require *zero* human/AI intervention.
 *   **ROI Multiplier**: Cost comparison vs. human sportswriting ($15/hr).
 

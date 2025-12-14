@@ -14,6 +14,38 @@ from agents.analyst import get_context_analyst
 from utils.red_team import poison_data
 
 from collections import Counter
+from langchain_ollama import ChatOllama
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+from pydantic import BaseModel, Field
+from typing import List
+
+class RecallResult(BaseModel):
+    hits: List[bool] = Field(description="List of booleans indicating if each fact was found.")
+
+def check_recall_llm(draft: str, beats: List[str]):
+    """
+    Uses Mistral to semantically check if beats are present in the draft.
+    """
+    if not beats: return 0.0
+    
+    llm = ChatOllama(model="mistral", temperature=0)
+    parser = JsonOutputParser(pydantic_object=RecallResult)
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "You are a Fact Checker. Check if the following FACTS are mentioned in the ARTICLE. Return strictly JSON with a key 'hits' containing a list of booleans (true/false) corresponding to each fact in order."),
+        ("user", "Facts: {beats}\n\nArticle: {draft}\n\nOutput (JSON):")
+    ])
+    
+    chain = prompt | llm | parser
+    try:
+        res = chain.invoke({"beats": beats, "draft": draft})
+        hits = res.get("hits", [])
+        # Ensure length matches
+        score = sum(hits) / len(beats) if hits else 0.0
+        return score
+    except:
+        return 0.0
 
 def generate_report(summary, filename):
     metrics = summary["metrics"]
@@ -164,11 +196,8 @@ async def main(args):
                 recall_score = 0
                 if args.recall and gold_beats:
                     draft = final_state.get("draft", "")
-                    hits = sum([1 for beat in gold_beats if beat.lower() in draft.lower()]) # Very naive matching
-                    # Better matching would require another LLM call but let's stick to simple for speed
-                    # or assume 'analyst' output are key tokens.
-                    # actually let's just log it.
-                    recall_score = hits / len(gold_beats) if gold_beats else 0
+                    # LLM Semantic Check
+                    recall_score = check_recall_llm(draft, gold_beats)
                 
                 print(f"  Iter {j+1}: {status} ({revisions} revs). Recall: {recall_score:.2f}")
                 
