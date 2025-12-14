@@ -51,7 +51,7 @@ The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 game
 ### 1. Pluralistic Jury System (Constitutional AI)
 Instead of a single "Judge", the system employs a diverse panel of agents to reduce variance and bias:
 *   **Fact Checker (Mistral)**: Verifies numeric accuracy against box scores (Precision).
-*   **Style Critic (Llama 3.2)**: Evaluates tone, excitement, and narrative flow (Fluidity).
+*   **Editor-in-Chief (Llama 3.2)**: Replaces the "Style Critic". Enforces journalistic standards, checks for "Hallucinated Nicknames" (e.g., Raptors vs Warriors), and ensures narrative stakes are explicit.
 *   **Bias Watchdog (Mistral)**: Checks for unfair framing or offensive language (Safety).
 
 ### 2. SOTA Evaluation Metrics
@@ -73,6 +73,8 @@ This allows the AI to write sentences like *"The Suns snapped a 3-game losing st
 
 ## 💻 CLI Benchmark Suite (Robust Testing)
 For automated, overnight testing, use the included batch script. This runs the evaluation in "Headless Mode" and generates a `benchmark_results_report.md`.
+
+> **Graceful Shutdown**: You can press `Ctrl+C` at any time. The script will catch the interrupt, save all results processed so far, and generate the final report before exiting.
 
 ```bash
 # Run a large-scale SOTA benchmark (Recmmended for Overnight)

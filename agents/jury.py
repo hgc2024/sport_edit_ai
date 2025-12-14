@@ -32,7 +32,7 @@ def get_style_critic():
     llm = ChatOllama(model="llama3.2", temperature=0.7)
     parser = JsonOutputParser(pydantic_object=StyleOutput)
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a Senior Editor. content must be exciting, energetic, and sound like a professional sportscaster. PASS if good, FAIL if boring or robotic."),
+        ("system", "You are the Editor-in-Chief. Grade the article on Journalistic Quality.\n\nCRITERIA:\n1. No Hallucinations: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so.\n2. Context: Did it mention the stakes (Series score, winning streak)?\n3. Flow: Does it read like a real human sportswriter?\n\nPASS only if it meets high editorial standards."),
         ("user", "Draft: {draft}\n{format_instructions}")
     ]).partial(format_instructions=parser.get_format_instructions())
     return prompt | llm | parser

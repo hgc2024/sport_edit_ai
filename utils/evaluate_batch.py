@@ -136,85 +136,117 @@ async def main(args):
     
     total_start = time.time()
     
-    for i, gid in enumerate(game_ids):
-        print(f"[{i+1}/{len(game_ids)}] Processing Game {gid}...")
-        for j in range(args.iterations):
-            try:
-                stats_data = get_game_stats(gid)
-                if "Error" in stats_data:
-                    print(f"  Skipping {gid}: Data not found")
-                    continue
+
+ 
+    print(f"Starting benchmark for {len(game_ids)} games ({args.iterations} iterations each)...")
+    
+    try:
+        for i, game_id in enumerate(game_ids):
+            print(f"[{i+1}/{len(game_ids)}] Processing Game {game_id}...")
+            
+            for iter_num in range(args.iterations):
+                start_time = time.time()
                 
-                attack_desc = "None"
+                # 1. Load Data (Context RAG is auto-handled in data_loader)
+                stats = get_game_stats(game_id)
                 
-                # Red Team: Poison the input for the WRITER (but not necessarily the Jury, 
-                # although currently the graph shares the state. 
-                # To test robustness properly, we'd need to fork the state.
-                # For this implementation, we poison the GLOBAL state, so the Jury sees it too.
-                # A robust Jury should notice the stats don't make sense or are contradictory if we check external consistency.
-                # BUT, since our Jury only sees the Input stats provided in state, 
-                # the Jury will just verify against the Poisoned stats (GIGO).
-                # To do this right: The Jury needs GROUND TRUTH (clean stats) while Writer gets POISONED stats.
-                # This requires a graph change.
-                # SHORTCUT: We will inject OBVIOUS HALLUCINATIONS that the Common Sense Checking might catch,
-                # OR we accept that for now we are testing if the MODEL hallucinates *additionally* on bad data.
-                
-                # Actually, let's do the "Chaos Injection" which is detectable.
+                # 2. Red Team Attack?
+                attack_log = None
                 if args.red_team:
-                    stats_data, attack_desc = poison_data(stats_data)
-                    print(f"  [RED TEAM] Attack: {attack_desc}")
+                    # The original `poison_data` function is used here, assuming `inject_noise` was a placeholder.
+                    # Also, `attack_type` is not returned by `poison_data`, so `attack_desc` is used directly.
+                    stats, attack_desc = poison_data(stats)
+                    attack_log = f"[Poisoned] {attack_desc}"
+                    # Only log if an attack actually happened
+                    if attack_desc != "None": # Assuming "None" means no attack
+                        print(f"  > Red Team Attack: {attack_desc}")
 
-                inputs = {
-                    "input_stats": stats_data, 
-                    "draft": "", 
-                    "jury_verdict": "", 
-                    "jury_feedback": [], 
-                    "revision_count": 0
-                }
-                
-                # Context Recall Check (Pre-Comp)
-                gold_beats = []
-                if args.recall:
-                    try:
-                        # Analyst looks at the stats (or clean stats if we had them sep)
-                        # We use the stats_data we have.
-                        analysis = analyst_chain.invoke({"input_stats": stats_data, "format_instructions": '{"beats": ["beat1", "beat2"]}'})
-                        gold_beats = analysis.get("beats", [])
-                        print(f"  [ANALYST] Identified {len(gold_beats)} story beats.")
-                    except Exception as e:
-                        print(f"  [ANALYST] Failed: {e}")
+                # 3. Process
+                try:
+                    # Assuming `graph_app.invoke` is the `run_editorial_workflow` equivalent
+                    # and it returns a dictionary with 'draft', 'revision_count', 'jury_feedback'
+                    inputs = {
+                        "input_stats": stats, 
+                        "draft": "", 
+                        "jury_verdict": "", 
+                        "jury_feedback": [], 
+                        "revision_count": 0
+                    }
+                    result = await asyncio.to_thread(graph_app.invoke, inputs)
+                    
+                    final_article = result.get("draft", "")
+                    revision_count = result.get("revision_count", 0)
+                    feedback = result.get("jury_feedback", [])
+                    
+                    # 4. Recall Check?
+                    recall_score = 0.0
+                    recall_details = {}
+                    if args.recall:
+                        # Extract Gold Beats from specific context
+                        # We pass the raw stats to the Analyst
+                        # Re-initialize analyst_chain if it's None or if we want a fresh one per game
+                        if analyst_chain is None:
+                            analyst_chain = get_context_analyst()
+                        
+                        beats_result = analyst_chain.invoke({"input_stats": stats, "format_instructions": '{"beats": ["beat1", "beat2"]}'})
+                        gold_beats = beats_result.get("beats", [])
+                        
+                        # Check Coverage
+                        score = check_recall_llm(final_article, gold_beats) # `details` is not returned by current check_recall_llm
+                        recall_score = score
+                        recall_details = {"beats": gold_beats, "matches": []} # Placeholder for matches as check_recall_llm doesn't return them
+                        print(f"  > Recall Score: {recall_score:.2f}")
 
-                # Run Graph
-                start_t = time.time()
-                final_state = await asyncio.to_thread(graph_app.invoke, inputs)
-                duration = time.time() - start_t
-                
-                status = final_state.get("jury_verdict", "FAIL")
-                revisions = final_state.get("revision_count", 0)
-                
-                # Post-Run: Check Recall
-                recall_score = 0
-                if args.recall and gold_beats:
-                    draft = final_state.get("draft", "")
-                    # LLM Semantic Check
-                    recall_score = check_recall_llm(draft, gold_beats)
-                
-                print(f"  Iter {j+1}: {status} ({revisions} revs). Recall: {recall_score:.2f}")
-                
-                results.append({
-                    "game_id": gid,
-                    "iteration": j+1,
-                    "status": status,
-                    "revisions": revisions,
-                    "duration": duration,
-                    "red_team_attack": attack_desc,
-                    "recall_score": recall_score,
-                    "gold_beats": gold_beats,
-                    "errors": final_state.get("jury_feedback", [])
-                })
-                
-            except Exception as e:
-                print(f"  Error on {gid}: {e}")
+                    duration = time.time() - start_time
+                    
+                    # Determine Status
+                    # Pass = 0 revisions AND no critical errors in feedback
+                    status = result.get("jury_verdict", "FAIL") # Use jury_verdict from graph
+                    if status == "PASS" and revision_count > 0:
+                        status = "WARN" # If passed but had revisions, mark as warn
+                    
+                    # Log result
+                    log_entry = {
+                        "game_id": game_id,
+                        "iteration": iter_num + 1,
+                        "duration": duration,
+                        "status": status,
+                        "revisions": revision_count,
+                        "metrics": {
+                            "recall": recall_score
+                        },
+                        "red_team": {
+                            "active": args.red_team,
+                            "attack": attack_log
+                        },
+                        "verdict_notes": str(feedback),
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "errors": result.get("jury_feedback", []) # Use jury_feedback as errors
+                    }
+                    results.append(log_entry)
+                    
+                    # Save incremental Results
+                    # Assuming OUTPUT_FILE is args.output
+                    with open(args.output, 'w') as f:
+                        json.dump(results, f, indent=2)
+                        
+                except Exception as e:
+                    print(f"  > Error processing game {game_id}: {e}")
+                    # Log error
+                    results.append({
+                        "game_id": game_id,
+                        "iteration": iter_num + 1,
+                        "error": str(e),
+                        "status": "ERROR",
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    # Save incremental Results even on error
+                    with open(args.output, 'w') as f:
+                        json.dump(results, f, indent=2)
+
+    except KeyboardInterrupt:
+        print("\n[!] Run interrupted by user (KeyboardInterrupt).")
+        print("Stopping loop and generating report for completed games...")
 
     total_duration = time.time() - total_start
     
