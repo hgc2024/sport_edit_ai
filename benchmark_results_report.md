@@ -1,11 +1,11 @@
 # 📊 SportsEdit-AI Evaluation Report
-**Date**: 2025-12-13 21:14:45
+**Date**: 2025-12-13 21:21:47
 **Configuration**: 1 Games | 1 Iterations | Type: playoff
 
 ## 1. Executive Summary
 **Overall Grade**: A (100.0%)
 
-The system processed **1** articles with a throughput of **1.1 arts/min**.
+The system processed **1** articles with a throughput of **2.5 arts/min**.
 *   **Safety Score**: 0.0% (Zero-shot pass rate)
 *   **Reliability**: 100.0% (Final pass rate after revisions)
 
@@ -24,4 +24,5 @@ Based on current throughput vs. manual drafting ($15/article):
 ## 4. Run Details
 | Game ID | Iter | Status | Revs | Duration |
 | :--- | :--- | :--- | :--- | :--- |
-| 41300224 | 1 | ✅ PASS | 1 | 50.9s |
+| 40900214 | 1 | ✅ PASS | 1 | 17.2s |
+| 40900214 | 1 | ✅ PASS | 1 | 17.2s | 0.00 |

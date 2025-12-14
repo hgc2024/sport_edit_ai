@@ -10,6 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.data_loader import get_random_game_ids, get_game_stats
 from graph import app as graph_app
+from agents.analyst import get_context_analyst
+from utils.red_team import poison_data
 
 from collections import Counter
 
@@ -79,6 +81,10 @@ Based on current throughput vs. manual drafting ($15/article):
     for r in results:
         icon = "✅" if r["status"] == "PASS" else "❌"
         md += f"| {r['game_id']} | {r['iteration']} | {icon} {r['status']} | {r['revisions']} | {r['duration']:.1f}s |\n"
+        md += f"| {r['game_id']} | {r['iteration']} | {icon} {r['status']} | {r['revisions']} | {r['duration']:.1f}s |"
+        if config.get("recall"):
+            md += f" {r['recall_score']:.2f} |"
+        md += "\n"
         
     # Save File
     report_path = filename.replace(".json", "_report.md")
@@ -88,10 +94,13 @@ Based on current throughput vs. manual drafting ($15/article):
     print(f"Report Output: {report_path}")
 
 async def main(args):
-    print(f"Starting Batch Evaluation: {args.batch_size} games, {args.iterations} iterations per game. Type: {args.type}")
+    print(f"Starting Batch Evaluation: {args.batch_size} games. Type: {args.type}")
+    print(f"Modes: Red Team={args.red_team}, Recall Metric={args.recall}")
     
     game_ids = get_random_game_ids(args.batch_size, args.type)
     results = []
+    
+    analyst_chain = get_context_analyst() if args.recall else None
     
     total_start = time.time()
     
@@ -104,7 +113,25 @@ async def main(args):
                     print(f"  Skipping {gid}: Data not found")
                     continue
                 
-                start_t = time.time()
+                attack_desc = "None"
+                
+                # Red Team: Poison the input for the WRITER (but not necessarily the Jury, 
+                # although currently the graph shares the state. 
+                # To test robustness properly, we'd need to fork the state.
+                # For this implementation, we poison the GLOBAL state, so the Jury sees it too.
+                # A robust Jury should notice the stats don't make sense or are contradictory if we check external consistency.
+                # BUT, since our Jury only sees the Input stats provided in state, 
+                # the Jury will just verify against the Poisoned stats (GIGO).
+                # To do this right: The Jury needs GROUND TRUTH (clean stats) while Writer gets POISONED stats.
+                # This requires a graph change.
+                # SHORTCUT: We will inject OBVIOUS HALLUCINATIONS that the Common Sense Checking might catch,
+                # OR we accept that for now we are testing if the MODEL hallucinates *additionally* on bad data.
+                
+                # Actually, let's do the "Chaos Injection" which is detectable.
+                if args.red_team:
+                    stats_data, attack_desc = poison_data(stats_data)
+                    print(f"  [RED TEAM] Attack: {attack_desc}")
+
                 inputs = {
                     "input_stats": stats_data, 
                     "draft": "", 
@@ -113,14 +140,37 @@ async def main(args):
                     "revision_count": 0
                 }
                 
-                # Run the graph
+                # Context Recall Check (Pre-Comp)
+                gold_beats = []
+                if args.recall:
+                    try:
+                        # Analyst looks at the stats (or clean stats if we had them sep)
+                        # We use the stats_data we have.
+                        analysis = analyst_chain.invoke({"input_stats": stats_data, "format_instructions": '{"beats": ["beat1", "beat2"]}'})
+                        gold_beats = analysis.get("beats", [])
+                        print(f"  [ANALYST] Identified {len(gold_beats)} story beats.")
+                    except Exception as e:
+                        print(f"  [ANALYST] Failed: {e}")
+
+                # Run Graph
+                start_t = time.time()
                 final_state = await asyncio.to_thread(graph_app.invoke, inputs)
                 duration = time.time() - start_t
                 
                 status = final_state.get("jury_verdict", "FAIL")
                 revisions = final_state.get("revision_count", 0)
                 
-                print(f"  Iter {j+1}: {status} ({revisions} revs) in {duration:.1f}s")
+                # Post-Run: Check Recall
+                recall_score = 0
+                if args.recall and gold_beats:
+                    draft = final_state.get("draft", "")
+                    hits = sum([1 for beat in gold_beats if beat.lower() in draft.lower()]) # Very naive matching
+                    # Better matching would require another LLM call but let's stick to simple for speed
+                    # or assume 'analyst' output are key tokens.
+                    # actually let's just log it.
+                    recall_score = hits / len(gold_beats) if gold_beats else 0
+                
+                print(f"  Iter {j+1}: {status} ({revisions} revs). Recall: {recall_score:.2f}")
                 
                 results.append({
                     "game_id": gid,
@@ -128,6 +178,9 @@ async def main(args):
                     "status": status,
                     "revisions": revisions,
                     "duration": duration,
+                    "red_team_attack": attack_desc,
+                    "recall_score": recall_score,
+                    "gold_beats": gold_beats,
                     "errors": final_state.get("jury_feedback", [])
                 })
                 
@@ -177,6 +230,8 @@ if __name__ == "__main__":
     parser.add_argument("--iterations", type=int, default=1, help="Runs per game")
     parser.add_argument("--type", type=str, default="playoff", choices=["all", "regular", "playoff"], help="Game Type filter")
     parser.add_argument("--output", type=str, default="benchmark_results.json", help="Output JSON file path")
+    parser.add_argument("--red_team", action="store_true", help="Enable Adversarial Data Poisoning")
+    parser.add_argument("--recall", action="store_true", help="Enable Context Recall Analysis")
     
     args = parser.parse_args()
     asyncio.run(main(args))

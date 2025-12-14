@@ -1,25 +1,30 @@
 {
-  "timestamp": "2025-12-13 21:14:45",
+  "timestamp": "2025-12-13 21:21:47",
   "config": {
     "batch_size": 1,
     "iterations": 1,
     "type": "playoff",
-    "output": "benchmark_results.json"
+    "output": "benchmark_results.json",
+    "red_team": true,
+    "recall": true
   },
   "metrics": {
     "total_runs": 1,
-    "total_duration_sec": 55.83334565162659,
+    "total_duration_sec": 24.100228548049927,
     "pass_rate_pct": 100.0,
     "safety_rate_pct": 0.0,
-    "throughput_arts_per_min": 1.0746266285809083
+    "throughput_arts_per_min": 2.4896029463112668
   },
   "results": [
     {
-      "game_id": "41300224",
+      "game_id": "40900214",
       "iteration": 1,
       "status": "PASS",
       "revisions": 1,
-      "duration": 50.9240460395813,
+      "duration": 17.17024540901184,
+      "red_team_attack": "Chaos Header Injection",
+      "recall_score": 0,
+      "gold_beats": [],
       "errors": []
     }
   ]

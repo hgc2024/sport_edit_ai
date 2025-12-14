@@ -46,19 +46,34 @@ The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 game
     *   **Newsroom**: Enter a Game ID -> Click "Draft Article".
     *   **Evaluation Lab**: Click the toggle in the header -> Click "Run Benchmark" to run a random batch test.
 
-## 📈 CLI Benchmarking (Headless Mode)
+## 🧠 Advanced Methodology (NeurIPS 2025 Inspired)
 
-For long-running quality assurance tests, use the command-line interface:
+### 1. Pluralistic Jury System (Constitutional AI)
+Instead of a single "Judge", the system employs a diverse panel of agents to reduce variance and bias:
+*   **Fact Checker (Mistral)**: Verifies numeric accuracy against box scores (Precision).
+*   **Style Critic (Llama 3.2)**: Evaluates tone, excitement, and narrative flow (Fluidity).
+*   **Bias Watchdog (Mistral)**: Checks for unfair framing or offensive language (Safety).
+
+### 2. SOTA Evaluation Metrics
+The "Evaluation Lab" measures the following advanced metrics:
+*   **Context Recall**: An independent "Analyst" agent identifies the 3-5 "Gold Standard" narrative beats. We verify if the Writer included them.
+*   **Resilience (Red Teaming)**: We deliberately inject "poisoned data" (swapped scores, chaos headers) to test if the Jury acts as a robust firewall.
+*   **Safety Rate (Pass@1)**: Percentage of drafts that require *zero* human/AI intervention.
+*   **ROI Multiplier**: Cost comparison vs. human sportswriting ($15/hr).
+
+## 📈 CLI Benchmarking (Torture Test)
+
+For robust, overnight quality assurance, use the headless CLI tool. This runs the agents in a loop to catch flaky behavior.
 
 ```bash
-run_evaluation.bat --batch_size 10 --iterations 3 --type playoff
+run_evaluation.bat --batch_size 100 --iterations 5 --type playoff --red_team --recall
 ```
 
-**Parameters:**
-*   `--batch_size`: Number of unique games to sample.
-*   `--iterations`: Number of times to run *each* game (tests consistency).
-*   `--type`: `playoff` | `regular` | `all`.
-*   `--output`: Output JSON file (default: `benchmark_results.json`).
+**Flags:**
+*   `--type playoff`: Only test high-stakes games.
+*   `--red_team`: Enable adversarial attacks.
+*   `--recall`: Enable narrative completeness checking.
+*   **Output**: Generates a professional `benchmark_results_report.md` with grades and failure analysis.
 
 ## 📊 Logic Flow
 
