@@ -121,5 +121,285 @@
     "errors": [
       "STYLE: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so."
     ]
+  },
+  {
+    "game_id": "40300214",
+    "iteration": 2,
+    "duration": 57.41632676124573,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5714285714285714
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (8 -> 58 pts)"
+    },
+    "verdict_notes": "['STYLE: The team name is incorrect. The Detroit Pistons are not the same as the New Jersey Nets.']",
+    "timestamp": "2025-12-13 22:42:43",
+    "errors": [
+      "STYLE: The team name is incorrect. The Detroit Pistons are not the same as the New Jersey Nets."
+    ]
+  },
+  {
+    "game_id": "40300214",
+    "iteration": 3,
+    "duration": 43.69732117652893,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Chaos Header (Fallback)"
+    },
+    "verdict_notes": "['STYLE: The article contains hallucinations, incorrectly stating the team name as \"New Jersey Nets\" for a game against the New York Knicks.']",
+    "timestamp": "2025-12-13 22:43:27",
+    "errors": [
+      "STYLE: The article contains hallucinations, incorrectly stating the team name as \"New Jersey Nets\" for a game against the New York Knicks."
+    ]
+  },
+  {
+    "game_id": "41600205",
+    "iteration": 1,
+    "duration": 59.117635011672974,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.8
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Slump (29 -> 0 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:44:26",
+    "errors": []
+  },
+  {
+    "game_id": "41600205",
+    "iteration": 2,
+    "duration": 37.958130836486816,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5714285714285714
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Slump (21 -> 0 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:45:04",
+    "errors": []
+  },
+  {
+    "game_id": "41600205",
+    "iteration": 3,
+    "duration": 55.68019938468933,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (18 -> 68 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:46:00",
+    "errors": []
+  },
+  {
+    "game_id": "42100122",
+    "iteration": 1,
+    "duration": 50.000980377197266,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (20 -> 70 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:46:50",
+    "errors": []
+  },
+  {
+    "game_id": "42100122",
+    "iteration": 2,
+    "duration": 48.15263104438782,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.375
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (24 -> 74 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:47:38",
+    "errors": []
+  },
+  {
+    "game_id": "42100122",
+    "iteration": 3,
+    "duration": 41.77635216712952,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5714285714285714
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Chaos Header (Fallback)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:48:20",
+    "errors": []
+  },
+  {
+    "game_id": "41400236",
+    "iteration": 1,
+    "duration": 46.58276438713074,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.2857142857142857
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (20 -> 70 pts)"
+    },
+    "verdict_notes": "[\"STYLE: The article immediately fails due to the incorrect team name ('Raptors' instead of 'Warriors') which is a critical error.\"]",
+    "timestamp": "2025-12-13 22:49:06",
+    "errors": [
+      "STYLE: The article immediately fails due to the incorrect team name ('Raptors' instead of 'Warriors') which is a critical error."
+    ]
+  },
+  {
+    "game_id": "41400236",
+    "iteration": 2,
+    "duration": 42.71438407897949,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.4
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Chaos Header (Fallback)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:49:49",
+    "errors": []
+  },
+  {
+    "game_id": "41400236",
+    "iteration": 3,
+    "duration": 39.60916709899902,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.7142857142857143
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Chaos Header (Fallback)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:50:29",
+    "errors": []
+  },
+  {
+    "game_id": "41800202",
+    "iteration": 1,
+    "duration": 71.83776116371155,
+    "status": "WARN",
+    "revisions": 2,
+    "metrics": {
+      "recall": 0.5714285714285714
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (17 -> 67 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:51:40",
+    "errors": []
+  },
+  {
+    "game_id": "41800202",
+    "iteration": 2,
+    "duration": 50.866634368896484,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.625
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Slump (15 -> 0 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:52:31",
+    "errors": []
+  },
+  {
+    "game_id": "41800202",
+    "iteration": 3,
+    "duration": 43.62528085708618,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.6666666666666666
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Slump (17 -> 0 pts)"
+    },
+    "verdict_notes": "[\"STYLE: The article used the wrong team name (e.g. calling Warriors 'Raptors') - the correct team names were not consistently applied throughout the text, but this was a minor error compared to the lack of context provided in the article.\"]",
+    "timestamp": "2025-12-13 22:53:15",
+    "errors": [
+      "STYLE: The article used the wrong team name (e.g. calling Warriors 'Raptors') - the correct team names were not consistently applied throughout the text, but this was a minor error compared to the lack of context provided in the article."
+    ]
+  },
+  {
+    "game_id": "42000103",
+    "iteration": 1,
+    "duration": 48.82485866546631,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.5
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (15 -> 65 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:54:04",
+    "errors": []
+  },
+  {
+    "game_id": "42000103",
+    "iteration": 2,
+    "duration": 48.19289684295654,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.75
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Chaos Header (Fallback)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:54:52",
+    "errors": []
   }
 ]

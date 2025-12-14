@@ -27,9 +27,9 @@ def get_fact_checker():
     ]).partial(format_instructions=parser.get_format_instructions())
     return prompt | llm | parser
 
-# 2. Style Critic (Creative Llama 3.2)
-def get_style_critic():
-    llm = ChatOllama(model="llama3.2", temperature=0.7)
+# 2. Editor-in-Chief (Journalistic Standards)
+def get_editor_in_chief():
+    llm = ChatOllama(model="mistral", temperature=0.7)
     parser = JsonOutputParser(pydantic_object=StyleOutput)
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are the Editor-in-Chief. Grade the article on Journalistic Quality.\n\nCRITERIA:\n1. No Hallucinations: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so.\n2. Context: Did it mention the stakes (Series score, winning streak)?\n3. Flow: Does it read like a real human sportswriter?\n\nPASS only if it meets high editorial standards."),

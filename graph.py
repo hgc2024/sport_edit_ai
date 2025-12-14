@@ -1,7 +1,7 @@
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
 from agents.writer import get_writer_chain
-from agents.jury import get_fact_checker, get_style_critic, get_bias_watchdog
+from agents.jury import get_fact_checker, get_editor_in_chief, get_bias_watchdog
 
 # Define the State
 class AgentState(TypedDict):
@@ -45,12 +45,12 @@ def jury_node(state: AgentState):
     except:
         bias_res = {"status": "FAIL", "issues": ["Bias check parsing error"]}
         
-    # 3. Style Check (Optional - doesn't block unless terrible, but let's just log it)
-    style_agent = get_style_critic()
+    # 3. Editor Check
+    editor_agent = get_editor_in_chief()
     try:
-        style_res = style_agent.invoke({"draft": draft})
+        editor_res = editor_agent.invoke({"draft": draft})
     except:
-        style_res = {"status": "PASS", "feedback": "Style check failed"}
+        editor_res = {"status": "PASS", "feedback": "Editor check failed"}
 
     # Aggregation Logic (Veto Power)
     verdict = "PASS"
@@ -64,12 +64,10 @@ def jury_node(state: AgentState):
         verdict = "FAIL"
         feedback.extend([f"BIAS: {i}" for i in bias_res.get("issues", [])])
 
-    # Style feedback just for info, unless we want to enforce it. 
-    # Let's enforce it if it's a FAIL.
-    if style_res.get("status") == "FAIL":
-        # Strict enforcement for Editor-in-Chief
+    # Enforcement for Editor-in-Chief
+    if editor_res.get("status") == "FAIL":
         verdict = "FAIL" 
-        feedback.append(f"STYLE: {style_res.get('feedback')}")
+        feedback.append(f"EDITOR: {editor_res.get('feedback')}")
 
     return {
         "jury_verdict": verdict,

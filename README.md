@@ -14,9 +14,9 @@ A local, AI-powered newsroom that generates, verifies, and publishes sports reca
 ### 1. The Jury System (Pluralistic Alignment)
 Based on *Gordon & Shen (2025)*, we replaced the single Judge with a **Pluralistic Jury**:
 *   **The Fact Checker (Mistral)**: Strict numeric verification.
-*   **The Style Critic (Llama 3.2)**: Ensures high-energy sports journalism.
+*   **The Editor-in-Chief (Mistral)**: Enforces journalistic standards and narrative stakes.
 *   **The Bias Watchdog (Mistral)**: Checks for unfair framing against losing teams.
-**Logic**: If Fact OR Bias fails, the draft is rejected (Veto Power). Style provides feedback.
+**Logic**: If ANY agent fails, the draft is rejected (Unanimous Consent). Editor provides qualitative feedback.
 
 ### 2. Batch Evaluation & ROI
 The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 games x 1 iteration) to measure:
@@ -51,7 +51,7 @@ The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 game
 ### 1. Pluralistic Jury System (Constitutional AI)
 Instead of a single "Judge", the system employs a diverse panel of agents to reduce variance and bias:
 *   **Fact Checker (Mistral)**: Verifies numeric accuracy against box scores (Precision).
-*   **Editor-in-Chief (Llama 3.2)**: Replaces the "Style Critic". Enforces journalistic standards, checks for "Hallucinated Nicknames" (e.g., Raptors vs Warriors), and ensures narrative stakes are explicit.
+*   **Editor-in-Chief (Mistral)**: Enforces journalistic standards, checks for "Hallucinated Nicknames" (e.g., Raptors vs Warriors), and ensures narrative stakes are explicit.
 *   **Bias Watchdog (Mistral)**: Checks for unfair framing or offensive language (Safety).
 
 ### 2. SOTA Evaluation Metrics
