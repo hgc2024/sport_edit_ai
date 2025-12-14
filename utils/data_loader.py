@@ -1,17 +1,37 @@
+import json
 import pandas as pd
 import os
 
 # Define path to the dataset relative to this file
 # database is in ../../data/archive/games_details.csv
 DATA_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'archive', 'games_details.csv')
+CONTEXT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'context_cache')
 
 def get_game_stats(game_id: str) -> str:
     """
     Reads the games_details.csv, filters for the given game_id,
     selects top 3 scorers from both teams, and returns a formatted string.
+    Augments with Context (Series/Season Record) if available.
     """
     if not os.path.exists(DATA_PATH):
         return f"Error: Dataset not found at {DATA_PATH}"
+
+    # 1. Load Deep Context (RAG)
+    context_str = ""
+    ctx_path = os.path.join(CONTEXT_DIR, f"{game_id}.json")
+    if os.path.exists(ctx_path):
+        try:
+            with open(ctx_path, 'r') as f:
+                ctx = json.load(f)
+            
+            context_str = f"""
+SEASON CONTEXT ({ctx['season']}):
+Home Record: {ctx['home_record']} (Streak: {ctx['home_streak']})
+Visitor Record: {ctx['visitor_record']} (Streak: {ctx['visitor_streak']})
+Narrative Notes: {"; ".join(ctx['narrative_notes'])}
+"""
+        except Exception as e:
+            print(f"Error loading context: {e}")
 
     try:
         df = pd.read_csv(DATA_PATH, low_memory=False)
@@ -61,8 +81,13 @@ def get_game_stats(game_id: str) -> str:
         team_summary += " " + ", ".join(player_summaries)
         summary_parts.append(team_summary)
 
-    final_text = " | ".join(summary_parts)
-    return final_text
+    stats_text = " | ".join(summary_parts)
+    
+    # Combined Output
+    if context_str:
+        return f"{context_str}\nGAME STATS:\n{stats_text}"
+    else:
+        return stats_text
 
 def get_random_game_ids(n: int = 5, game_type: str = 'all') -> list[str]:
     """

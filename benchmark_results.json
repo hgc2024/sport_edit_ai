@@ -1,64 +1,30 @@
 {
-  "timestamp": "2025-12-13 21:45:36",
+  "timestamp": "2025-12-13 22:05:18",
   "config": {
     "batch_size": 1,
-    "iterations": 3,
+    "iterations": 1,
     "type": "playoff",
     "output": "benchmark_results.json",
-    "red_team": true,
-    "recall": true
+    "red_team": false,
+    "recall": false
   },
   "metrics": {
-    "total_runs": 3,
-    "total_duration_sec": 126.16561675071716,
+    "total_runs": 1,
+    "total_duration_sec": 19.4988751411438,
     "pass_rate_pct": 100.0,
     "safety_rate_pct": 0.0,
-    "throughput_arts_per_min": 1.4266961525314055
+    "throughput_arts_per_min": 3.0771005796840245
   },
   "results": [
     {
-      "game_id": "41500315",
+      "game_id": "42000226",
       "iteration": 1,
       "status": "PASS",
       "revisions": 1,
-      "duration": 23.060343027114868,
-      "red_team_attack": "Chaos Header (Fallback)",
-      "recall_score": 0.6666666666666666,
-      "gold_beats": [
-        "Kevin Durant leads Thunder to 40-point night",
-        "Russell Westbrook dishes out 8 assists in OKC win",
-        "Stephen Curry and Klay Thompson combine for 58 points from GSW"
-      ],
-      "errors": []
-    },
-    {
-      "game_id": "41500315",
-      "iteration": 2,
-      "status": "PASS",
-      "revisions": 1,
-      "duration": 25.23344588279724,
-      "red_team_attack": "Star Slump (31 -> 0 pts)",
-      "recall_score": 0.3333333333333333,
-      "gold_beats": [
-        "Kevin Durant dominates with 40 points, while Russell Westbrook struggles to find his shot",
-        "Stephen Curry leads the way for GSW with 31 points, but Golden State's bench is held in check",
-        "Andrew Bogut's strong rebounding effort helps GSW secure a crucial win on the road"
-      ],
-      "errors": []
-    },
-    {
-      "game_id": "41500315",
-      "iteration": 3,
-      "status": "PASS",
-      "revisions": 1,
-      "duration": 22.455277919769287,
-      "red_team_attack": "Chaos Header (Fallback)",
-      "recall_score": 0.6666666666666666,
-      "gold_beats": [
-        "Kevin Durant leads Thunder to 40-point night",
-        "Russell Westbrook dishes out 8 assists in OKC's high-scoring win",
-        "Stephen Curry and Klay Thompson combine for 58 points from GSW"
-      ],
+      "duration": 18.103712797164917,
+      "red_team_attack": "None",
+      "recall_score": 0,
+      "gold_beats": [],
       "errors": []
     }
   ]

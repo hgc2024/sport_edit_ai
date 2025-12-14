@@ -1,39 +1,6 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
 venv/
+__pycache__/
+*.pyc
 .env
-
-# IDE
-.vscode/
-.idea/
-
-# Dataset (Keep archive distinct if needed, but usually we don't commit large CSVs)
-# Assuming user might want to keep data/archive in the repo if it's small, 
-# but the user said "games_details.csv" is 93MB. It's better to ignore it or track it with LFS.
-# For this request, I will adhere to "non-essential files aren't committed".
-data/archive/
-
-# Logs
-*.log
+.DS_Store
+context_cache/
