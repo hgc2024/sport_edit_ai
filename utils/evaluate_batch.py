@@ -11,6 +11,82 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.data_loader import get_random_game_ids, get_game_stats
 from graph import app as graph_app
 
+from collections import Counter
+
+def generate_report(summary, filename):
+    metrics = summary["metrics"]
+    results = summary["results"]
+    config = summary["config"]
+    
+    # Calculate Grade
+    pass_rate = metrics["pass_rate_pct"]
+    if pass_rate >= 90: grade = "A"
+    elif pass_rate >= 80: grade = "B"
+    elif pass_rate >= 70: grade = "C"
+    elif pass_rate >= 60: grade = "D"
+    else: grade = "F"
+    
+    # Failure Analysis
+    failures = [r for r in results if r["status"] == "FAIL"]
+    error_msgs = []
+    for f in failures:
+        error_msgs.extend(f.get("errors", []))
+    
+    top_issues = Counter(error_msgs).most_common(5)
+    
+    # Markdown Content
+    md = f"""# 📊 SportsEdit-AI Evaluation Report
+**Date**: {summary["timestamp"]}
+**Configuration**: {config["batch_size"]} Games | {config["iterations"]} Iterations | Type: {config["type"]}
+
+## 1. Executive Summary
+**Overall Grade**: {grade} ({pass_rate:.1f}%)
+
+The system processed **{metrics["total_runs"]}** articles with a throughput of **{metrics["throughput_arts_per_min"]:.1f} arts/min**.
+*   **Safety Score**: {metrics["safety_rate_pct"]:.1f}% (Zero-shot pass rate)
+*   **Reliability**: {metrics["pass_rate_pct"]:.1f}% (Final pass rate after revisions)
+
+### Projected ROI (Annual)
+Based on current throughput vs. manual drafting ($15/article):
+*   **Est. Cost Savings**: ${(metrics["total_runs"] * 14.95):,.2f} per batch run equivalent.
+
+## 2. Failure Analysis
+**Total Failures**: {len(failures)}
+
+**Top Recurring Issues**:
+"""
+    if not top_issues:
+        md += "*   *None. Perfect Run!*"
+    else:
+        for issue, count in top_issues:
+            md += f"*   **{count}x**: {issue}\n"
+
+    md += """
+## 3. Recommendations
+"""
+    if grade == "A":
+        md += "*   System is production-ready. Consider increasing high-stakes sample size.\n"
+    elif grade == "F":
+        md += "*   CRITICAL: Review prompt engineering for Bias/Fact agents.\n"
+    elif len(failures) > 0:
+        md += "*   Tune Jury strictness or Improve Writer context handling.\n"
+
+    md += """
+## 4. Run Details
+| Game ID | Iter | Status | Revs | Duration |
+| :--- | :--- | :--- | :--- | :--- |
+"""
+    for r in results:
+        icon = "✅" if r["status"] == "PASS" else "❌"
+        md += f"| {r['game_id']} | {r['iteration']} | {icon} {r['status']} | {r['revisions']} | {r['duration']:.1f}s |\n"
+        
+    # Save File
+    report_path = filename.replace(".json", "_report.md")
+    with open(report_path, "w", encoding="utf-8") as f:
+        f.write(md)
+        
+    print(f"Report Output: {report_path}")
+
 async def main(args):
     print(f"Starting Batch Evaluation: {args.batch_size} games, {args.iterations} iterations per game. Type: {args.type}")
     
@@ -91,6 +167,9 @@ async def main(args):
     print(f"Pass Rate: {pass_rate:.1f}%")
     print(f"Safety Rate: {safety_rate:.1f}%")
     print(f"Results saved to: {args.output}")
+    
+    # Generate Professional Report
+    generate_report(summary, args.output)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SportsEdit-AI Benchmarking Tool")
