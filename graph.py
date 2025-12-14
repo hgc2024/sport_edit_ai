@@ -1,67 +1,97 @@
 from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
 from agents.writer import get_writer_chain
-from agents.judge import get_judge_chain
+from agents.jury import get_fact_checker, get_style_critic, get_bias_watchdog
 
 # Define the State
 class AgentState(TypedDict):
     input_stats: str
     draft: str
-    critique_status: str
-    critique_errors: List[str]
+    # Aggregate Jury Results
+    jury_verdict: str # PASS or FAIL
+    jury_feedback: List[str] 
     revision_count: int
 
-# Nodes
 def writer_node(state: AgentState):
     chain = get_writer_chain()
-    # If there are errors, we might want to feed them back. 
-    # For now, simplistic: just prompt with stats (or with stats + previous errors if we were advanced)
-    # The prompt in writer.py is simple. Let's stick to the prompt.
-    # If we want to support feedback loop, we'd need to update writer prompt dynamically.
-    # For "Happy Path" first, let's just regenerate. 
-    # But specification says: "Loop back... with specific feedback".
-    # So I should update the writer prompt or pass feedback as "stats" context?
-    # Let's verify prompt in writer.py: ("user", "Game Stats: {stats}")
-    # I should modify writer to accept optional feedback.
-    
-    # Let's pass the input stats. 
-    # If critiquing, we might append the critique to the stats or a new message.
-    
     input_text = state['input_stats']
-    if state.get('critique_errors') and state['revision_count'] > 0:
-        feedback = "; ".join(state['critique_errors'])
-        input_text += f"\n\nCorrection needed: {feedback}"
+    
+    # Append feedback if retrying
+    if state.get('jury_feedback') and state['revision_count'] > 0:
+        feedback_str = "; ".join(state['jury_feedback'])
+        input_text += f"\n\nCRITICAL FEEDBACK FROM JURY: {feedback_str}. Fix these errors."
         
     response = chain.invoke({"stats": input_text})
     return {"draft": response.content, "revision_count": state.get("revision_count", 0) + 1}
 
-def judge_node(state: AgentState):
-    chain = get_judge_chain()
-    result = chain.invoke({"stats": state['input_stats'], "draft": state['draft']})
-    # result is a dict with status, errors, score (because using JsonOutputParser)
+def jury_node(state: AgentState):
+    # Run in "Parallel" (sequentially here for simplicity on single GPU, 
+    # but logically distinct).
+    
+    draft = state['draft']
+    stats = state['input_stats']
+    
+    # 1. Fact Check
+    fact_agent = get_fact_checker()
+    try:
+        fact_res = fact_agent.invoke({"stats": stats, "draft": draft})
+    except:
+        fact_res = {"status": "FAIL", "errors": ["Fact check parsing error"]}
+
+    # 2. Bias Check
+    bias_agent = get_bias_watchdog()
+    try:
+        bias_res = bias_agent.invoke({"draft": draft})
+    except:
+        bias_res = {"status": "FAIL", "issues": ["Bias check parsing error"]}
+        
+    # 3. Style Check (Optional - doesn't block unless terrible, but let's just log it)
+    style_agent = get_style_critic()
+    try:
+        style_res = style_agent.invoke({"draft": draft})
+    except:
+        style_res = {"status": "PASS", "feedback": "Style check failed"}
+
+    # Aggregation Logic (Veto Power)
+    verdict = "PASS"
+    feedback = []
+    
+    if fact_res.get("status") == "FAIL":
+        verdict = "FAIL"
+        feedback.extend([f"FACT: {e}" for e in fact_res.get("errors", [])])
+        
+    if bias_res.get("status") == "FAIL":
+        verdict = "FAIL"
+        feedback.extend([f"BIAS: {i}" for i in bias_res.get("issues", [])])
+
+    # Style feedback just for info, unless we want to enforce it. 
+    # Let's enforce it if it's a FAIL.
+    if style_res.get("status") == "FAIL":
+        # Maybe strict=False for style? Let's be strict for now.
+        # verdict = "FAIL" 
+        feedback.append(f"STYLE: {style_res.get('feedback')}")
+
     return {
-        "critique_status": result.get("status", "FAIL"), 
-        "critique_errors": result.get("errors", []),
-        "score": result.get("score", 0)
+        "jury_verdict": verdict,
+        "jury_feedback": feedback
     }
 
-# Conditional Logic
 def should_revise(state: AgentState):
-    if state['critique_status'] == "PASS":
+    if state['jury_verdict'] == "PASS":
         return "end"
-    if state['revision_count'] >= 3: # Max retries
+    if state['revision_count'] >= 3:
         return "end"
     return "rewrite"
 
 # Graph Construction
 workflow = StateGraph(AgentState)
 workflow.add_node("writer", writer_node)
-workflow.add_node("judge", judge_node)
+workflow.add_node("jury", jury_node)
 
 workflow.set_entry_point("writer")
-workflow.add_edge("writer", "judge")
+workflow.add_edge("writer", "jury")
 workflow.add_conditional_edges(
-    "judge",
+    "jury",
     should_revise,
     {
         "rewrite": "writer",
@@ -70,7 +100,3 @@ workflow.add_conditional_edges(
 )
 
 app = workflow.compile()
-
-if __name__ == "__main__":
-    # Test compilation
-    print("Graph compiled successfully.")

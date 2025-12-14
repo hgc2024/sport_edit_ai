@@ -5,56 +5,51 @@ A local, AI-powered newsroom that generates, verifies, and publishes sports reca
 ## 🚀 Features
 
 *   **Agentic Writing:** Generates excitement-filled recaps (Writer Agent).
-*   **Automated Fact-Checking:** Verifies stats against ground truth (Judge Agent).
-*   **Self-Correction:** Automatically revises drafts if errors are found.
+*   **Pluralistic Jury:** A 3-agent panel (Fact, Style, Bias) verifies every draft.
+*   **Evaluation Lab:** Run batch benchmarks to measure ROI, Consistency, and Safety.
 *   **Local & Cost-Efficient:** Runs 100% locally on NVIDIA RTX 4050 (Cost: $0.00).
-*   **Modern UI:** Premium React frontend with Dark Mode and real-time status updates.
-*   **Robust Backend:** FastAPI server handling agent orchestration.
+
+## 🧠 Methodology (NeurIPS 2025 Alignment)
+
+### 1. The Jury System (Pluralistic Alignment)
+Based on *Gordon & Shen (2025)*, we replaced the single Judge with a **Pluralistic Jury**:
+*   **The Fact Checker (Mistral)**: Strict numeric verification.
+*   **The Style Critic (Llama 3.2)**: Ensures high-energy sports journalism.
+*   **The Bias Watchdog (Mistral)**: Checks for unfair framing against losing teams.
+**Logic**: If Fact OR Bias fails, the draft is rejected (Veto Power). Style provides feedback.
+
+### 2. Batch Evaluation & ROI
+The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 games x 1 iteration) to measure:
+*   **Safety Rate**: % of drafts requiring zero human intervention.
+*   **Throughput**: Articles generated per minute.
+*   **ROI Multiplier**: Human Cost ($15.00) vs. Agent Cost (~$0.05).
 
 ## 🛠 Prerequisites
 
-1.  **Python 3.10+**
-2.  **Node.js v18+** (Required for React Client)
-3.  **Ollama**: Install from [ollama.com](https://ollama.com).
-4.  **Models**: Pull the required models:
+1.  **Python 3.10+** & **Node.js v18+**
+2.  **Ollama**: Install & Pull Models:
     ```bash
     ollama pull llama3.2
     ollama pull mistral
     ```
-5.  **Dataset**: Ensure Kaggle NBA dataset is in `../data/archive/`.
+3.  **Dataset**: Ensure Kaggle NBA dataset is in `../data/archive/`.
 
 ## ⚡ Quick Start
 
 1.  **Setup Environment**:
-    Double-click `setup_env.bat` to install both Python and Node dependencies.
-    *   Creates/activates Python `venv`.
-    *   Installs pip requirements (`fastapi`, `langgraph`, etc.).
-    *   Installs npm packages in `client/`.
+    Double-click `setup_env.bat` to install dependencies (Python & Node).
 
 2.  **Run the System**:
-    Double-click `start_app.bat` to launch both servers:
-    *   **Backend (FastAPI)**: `http://localhost:8000`
-    *   **Frontend (React)**: `http://localhost:5173`
+    Double-click `start_app.bat` to launch backend (8000) and frontend (5173).
 
-3.  **Use**:
-    *   Open `http://localhost:5173`.
-    *   Enter a Game ID (e.g., `22200477`).
-    *   Click "Draft Article" and verify the ROI calculations!
-
-## 📂 Project Structure
-
-*   `agents/`: Processing logic for Writer and Judge agents.
-*   `api.py`: FastAPI backend entry point (serves logic to frontend).
-*   `client/`: React/Vite Frontend source code.
-*   `graph.py`: LangGraph orchestration loop.
-*   `utils/`: Data processing helpers.
-*   `setup_env.bat` / `start_app.bat`: Automation scripts.
+3.  **Operating Modes**:
+    *   **Newsroom**: Enter a Game ID -> Click "Draft Article".
+    *   **Evaluation Lab**: Click the toggle in the header -> Click "Run Benchmark" to run a random batch test.
 
 ## 📊 Logic Flow
 
-1.  **Frontend**: User requests a draft via React UI.
-2.  **API**: FastAPI Endpoint triggers Graph.
-3.  **Writer**: Generates draft using Llama 3.2.
-4.  **Judge**: Verifies stats using Mistral.
-5.  **Loop**: If FAIL, Writer retries with feedback.
-6.  **Response**: Final text + Verification Log + Execution Stats returned to UI.
+1.  **Input**: Box Score Data.
+2.  **Writer**: Generates draft (Llama 3.2).
+3.  **Jury**: Parallel execution of Fact, Style, and Bias agents.
+4.  **Consensus**: Votes aggregated. Revisions triggered if necessary.
+5.  **Output**: Verified Article + Jury Feedback.

@@ -64,24 +64,34 @@ def get_game_stats(game_id: str) -> str:
     final_text = " | ".join(summary_parts)
     return final_text
 
+def get_random_game_ids(n: int = 5) -> list[str]:
+    """
+    Returns a list of random Game IDs from the dataset.
+    Tries to mix Regular Season and Playoffs if possible (based on dates or IDs).
+    For simplicty with this dataset, we just sample random rows.
+    """
+    if not os.path.exists(DATA_PATH):
+        return []
+        
+    try:
+        # We read just the GAME_ID column to be fast
+        df = pd.read_csv(DATA_PATH, usecols=['GAME_ID'], low_memory=False)
+        df['GAME_ID'] = df['GAME_ID'].astype(str)
+        unique_ids = df['GAME_ID'].unique()
+        
+        if len(unique_ids) < n:
+            return list(unique_ids)
+            
+        import random
+        return random.sample(list(unique_ids), n)
+    except Exception as e:
+        print(f"Error sampling games: {e}")
+        return []
+
 if __name__ == "__main__":
-    # Test with a sample Game ID from the dataset
-    # We need a valid game ID. I'll pick one if I can see the file, but I can't.
-    # I'll try to find one by loading the head of the file in the test block, 
-    # or just ask the user to provide one if valid.
-    # Actually, I can just scan the file for the first game_id.
-    
-    print("Testing data_loader...")
+    # Test block
     if os.path.exists(DATA_PATH):
-        try:
-            # Just read a chunk to get a game_id
-            df_sample = pd.read_csv(DATA_PATH, nrows=100)
-            sample_id = df_sample['GAME_ID'].iloc[0]
-            print(f"Found sample Game ID: {sample_id}")
-            result = get_game_stats(sample_id)
-            print("Output:")
-            print(result)
-        except Exception as e:
-            print(e)
-    else:
-        print(f"File not found: {DATA_PATH}")
+        print("Testing random batch:")
+        ids = get_random_game_ids(3)
+        print(f"IDs: {ids}")
+
