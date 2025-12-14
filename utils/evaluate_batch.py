@@ -169,7 +169,7 @@ async def main(args):
                 try:
                     # Assuming `graph_app.invoke` is the `run_editorial_workflow` equivalent
                     # and it returns a dictionary with 'draft', 'revision_count', 'jury_feedback'
-                inputs = {
+                    inputs = {
                         "input_stats": stats, 
                         "draft": "", 
                         "jury_verdict": "", 
@@ -216,7 +216,25 @@ async def main(args):
                     }
                     results.append(log_entry)
                     
-                    # ... (Save remains same) ...
+                    # Save incremental Results
+                    with open(args.output, 'w') as f:
+                        json.dump(results, f, indent=2)
+                        
+                except Exception as e:
+                    print(f"  > Error processing game {game_id}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Log error
+                    results.append({
+                        "game_id": game_id,
+                        "iteration": iter_num + 1,
+                        "error": str(e),
+                        "status": "ERROR",
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+                    })
+                    # Save incremental Results even on error
+                    with open(args.output, 'w') as f:
+                        json.dump(results, f, indent=2)
 
     except KeyboardInterrupt:
         print("\n[!] Run interrupted by user (KeyboardInterrupt).")

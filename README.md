@@ -48,18 +48,28 @@ The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 game
 
 ## 🧠 Advanced Methodology (NeurIPS 2025 Inspired)
 
-### 1. Pluralistic Jury System (Constitutional AI)
-Instead of a single "Judge", the system employs a diverse panel of agents to reduce variance and bias:
-*   **Fact Checker (Mistral)**: Verifies numeric accuracy against box scores (Precision).
-*   **Editor-in-Chief (Mistral)**: Enforces journalistic standards, checks for "Hallucinated Nicknames" (e.g., Raptors vs Warriors), and ensures narrative stakes are explicit.
-*   **Bias Watchdog (Mistral)**: Checks for unfair framing or offensive language (Safety).
+### 1. The Media Enterprise Jury (Expanded Architecture)
+We have evolved the single "Judge" into a sophisticated **6-Agent Media Enterprise** organized into three functional divisions:
+
+#### A. The Standards Division (Gatekeepers)
+*   **Fact Checker (Mistral)**: Strict numeric verification against box scores. **(Veto Power)**
+*   **Brand Safety Officer (Mistral)**: Protects ad revenue by flagging toxicity, harsh sentiment, or controversy. **(Veto Power)**
+*   **Bias Watchdog (Mistral)**: Checks for unfair framing against losing teams. **(Veto Power)**
+
+#### B. The Editorial Division (Quality)
+*   **Editor-in-Chief (Mistral)**: "The Voice". Assigns a **Quality Score (1-10)** based on narrative flow, context, and proper team naming. **(Fail if Score < 6)**.
+
+#### C. The Growth Division (Optimization)
+*   **SEO Strategist (Mistral)**: Maximizes search traffic. Checks keywords and entity linking. Assigns **SEO Score (0-100)**.
+*   **Engagement Editor (Mistral)**: Maximizes "Time on Page". Checks hooks and readability. Assigns **Engagement Score (1-10)**.
 
 ### 2. SOTA Evaluation Metrics
-The "Evaluation Lab" measures the following advanced metrics:
-*   **Semantic Recall**: An independent "Analyst" agent extracts 3-5 key story beats. A third-party LLM (Mistral) then semantically verifies if the draft covers these facts (checking meaning, not just keywords).
-*   **Resilience (Red Teaming)**: We use **Regex-based Data Poisoning** to surgically alter numbers (e.g., flipping the winner bit, inflating star player points) to test if the Jury relies on internal consistency.
-*   **Safety Rate (Pass@1)**: Percentage of drafts that require *zero* human/AI intervention.
-*   **ROI Multiplier**: Cost comparison vs. human sportswriting ($15/hr).
+The "Evaluation Lab" now measures:
+*   **Avg Quality Score**: Editorial grade (e.g., 8.5/10).
+*   **Hallucination Rate**: Specific % of Fact/Entity errors.
+*   **SEO & Engagement Scores**: Growth metrics for every article.
+*   **Safety Rate**: % of drafts passing all "Gatekeeper" checks.
+*   **Detailed Logging**: Captures full decision trees (JSON) for all 6 agents.
 
 ### 3. Deep Context RAG (New!)
 The system is no longer "amnesiac". We have implemented a **Temporal Context Engine** that replays the entire 20-year history of the NBA to build state-aware context for every game.
@@ -92,6 +102,6 @@ run_evaluation.bat --batch_size 100 --iterations 3 --red_team --recall
 
 1.  **Input**: Box Score Data.
 2.  **Writer**: Generates draft (Llama 3.2).
-3.  **Jury**: Parallel execution of Fact, Style, and Bias agents.
-4.  **Consensus**: Votes aggregated. Revisions triggered if necessary.
+3.  **Jury**: Parallel execution of 6 specialized agents (Standards, Editorial, Growth).
+4.  **Consensus**: Complex voting logic (Vetoes + Quality Gates).
 5.  **Output**: Verified Article + Jury Feedback.

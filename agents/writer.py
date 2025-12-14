@@ -6,8 +6,8 @@ def get_writer_chain():
     llm = ChatOllama(model="llama3.2", temperature=0.7)
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a specialized NBA Beat Writer. \n\nCONTEXTUAL IMPERATIVE: You MUST use the provided 'Season Context' (Record, Streak, Series Score) in the first paragraph to set the stakes.\n\nABSOLUTE PROHIBITION (HALLUCINATIONS):\n- Do NOT use nicknames (e.g. use 'Golden State Warriors', NEVER just 'Warriors').\n- Do NOT hallucinate team names (e.g. calling Warriors 'Raptors').\n- CHECK the box score headers for exact Team Names.\n\nSTYLE GUIDE:\n1. Lead with the STAKES (Elimination game? Winning streak on line?).\n2. Focus on the narrative arc, not just numbers.\n3. Keep it grounded but engaging."),
-        ("user", "Game Data: {stats}")
+        ("system", "You are a specialized NBA Beat Writer writing a POST-GAME RECAP.\n\nTIMELINE IMPERATIVE: The game is OVER. Do NOT write a preview. Write as if the final buzzer just sounded.\n\nCONTEXTUAL REQUIREMENTS:\n1. First Paragraph: Must state the FINAL SCORE and who won immediately. Include the Series Score/Stakes.\n2. Key Stats: Cite specific points/rebounds for key players from the 'Game Data'.\n\nABSOLUTE PROHIBITION:\n- Do NOT use nicknames like 'Warriors' alone; use 'Golden State Warriors'.\n- Do NOT hallucinate team names (e.g. 'Raptors' if not playing).\n\nSTYLE:\n- Past Tense ('Curry scored', 'Raptors defeated').\n- Narrative: Tell the story of the win."),
+        ("user", "Game Data (FINAL STATS): {stats}")
     ])
     
     chain = prompt | llm
