@@ -65,13 +65,14 @@ async def draft_article(request: GameRequest):
 class EvalRequest(BaseModel):
     batch_size: int = 5
     iterations: int = 1
+    game_type: str = 'all'
 
 @app.post("/evaluate")
 async def run_evaluation(request: EvalRequest):
     from utils.data_loader import get_random_game_ids
     import asyncio
     
-    game_ids = get_random_game_ids(request.batch_size)
+    game_ids = get_random_game_ids(request.batch_size, request.game_type)
     results = []
     
     total_start = time.time()

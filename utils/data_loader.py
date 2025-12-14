@@ -64,11 +64,10 @@ def get_game_stats(game_id: str) -> str:
     final_text = " | ".join(summary_parts)
     return final_text
 
-def get_random_game_ids(n: int = 5) -> list[str]:
+def get_random_game_ids(n: int = 5, game_type: str = 'all') -> list[str]:
     """
-    Returns a list of random Game IDs from the dataset.
-    Tries to mix Regular Season and Playoffs if possible (based on dates or IDs).
-    For simplicty with this dataset, we just sample random rows.
+    Returns a list of random Game IDs.
+    game_type: 'all', 'regular' (starts with 2), 'playoff' (starts with 4)
     """
     if not os.path.exists(DATA_PATH):
         return []
@@ -77,6 +76,12 @@ def get_random_game_ids(n: int = 5) -> list[str]:
         # We read just the GAME_ID column to be fast
         df = pd.read_csv(DATA_PATH, usecols=['GAME_ID'], low_memory=False)
         df['GAME_ID'] = df['GAME_ID'].astype(str)
+        
+        if game_type == 'regular':
+            df = df[df['GAME_ID'].str.startswith('2')]
+        elif game_type == 'playoff':
+            df = df[df['GAME_ID'].str.startswith('4')]
+            
         unique_ids = df['GAME_ID'].unique()
         
         if len(unique_ids) < n:

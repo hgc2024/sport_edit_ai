@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-12-13 21:06:33",
+  "config": {
+    "batch_size": 1,
+    "iterations": 1,
+    "type": "playoff",
+    "output": "benchmark_results.json"
+  },
+  "metrics": {
+    "total_runs": 1,
+    "total_duration_sec": 22.31962561607361,
+    "pass_rate_pct": 100.0,
+    "safety_rate_pct": 0.0,
+    "throughput_arts_per_min": 2.6882171337493515
+  },
+  "results": [
+    {
+      "game_id": "41300201",
+      "iteration": 1,
+      "status": "PASS",
+      "revisions": 1,
+      "duration": 21.113598585128784,
+      "errors": []
+    }
+  ]
+}

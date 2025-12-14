@@ -46,6 +46,20 @@ The new **Evaluation Lab** dashboard allows running random batches (e.g., 3 game
     *   **Newsroom**: Enter a Game ID -> Click "Draft Article".
     *   **Evaluation Lab**: Click the toggle in the header -> Click "Run Benchmark" to run a random batch test.
 
+## 📈 CLI Benchmarking (Headless Mode)
+
+For long-running quality assurance tests, use the command-line interface:
+
+```bash
+run_evaluation.bat --batch_size 10 --iterations 3 --type playoff
+```
+
+**Parameters:**
+*   `--batch_size`: Number of unique games to sample.
+*   `--iterations`: Number of times to run *each* game (tests consistency).
+*   `--type`: `playoff` | `regular` | `all`.
+*   `--output`: Output JSON file (default: `benchmark_results.json`).
+
 ## 📊 Logic Flow
 
 1.  **Input**: Box Score Data.
