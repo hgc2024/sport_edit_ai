@@ -61,18 +61,29 @@ The "Evaluation Lab" measures the following advanced metrics:
 *   **Safety Rate (Pass@1)**: Percentage of drafts that require *zero* human/AI intervention.
 *   **ROI Multiplier**: Cost comparison vs. human sportswriting ($15/hr).
 
-## 📈 CLI Benchmarking (Torture Test)
+### 3. Deep Context RAG (New!)
+The system is no longer "amnesiac". We have implemented a **Temporal Context Engine** that replays the entire 20-year history of the NBA to build state-aware context for every game.
 
-For robust, overnight quality assurance, use the headless CLI tool. This runs the agents in a loop to catch flaky behavior.
+On the first run, the system will automatically:
+1.  Run `utils/build_context.py` (ETL Pipeline).
+2.  Generate thousands of "Context Snapshots" (JSON) in `context_cache/`.
+3.  Inject **Season Records**, **Winning Streaks**, and **Series History** into the Writer's prompt.
+
+This allows the AI to write sentences like *"The Suns snapped a 3-game losing streak..."* based on actual historical data.
+
+## 💻 CLI Benchmark Suite (Robust Testing)
+For automated, overnight testing, use the included batch script. This runs the evaluation in "Headless Mode" and generates a `benchmark_results_report.md`.
 
 ```bash
-run_evaluation.bat --batch_size 100 --iterations 5 --type playoff --red_team --recall
+# Run a large-scale SOTA benchmark (Recmmended for Overnight)
+run_evaluation.bat --batch_size 100 --iterations 3 --red_team --recall
 ```
 
-**Flags:**
-*   `--type playoff`: Only test high-stakes games.
-*   `--red_team`: Enable adversarial attacks.
-*   `--recall`: Enable narrative completeness checking.
+### Arguments:
+*   `--batch_size`: Number of distinct games to test.
+*   `--iterations`: How many times to re-run the *same* game (tests consistency/variance).
+*   `--red_team`: Enables **Adversarial Data Poisoning** (Score Swapping, Star Inflation) to test Jury resilience.
+*   `--recall`: Enables **Semantic Fact Verification** using a secondary Analyst agent (Mistral).completeness checking.
 *   **Output**: Generates a professional `benchmark_results_report.md` with grades and failure analysis.
 
 ## 📊 Logic Flow
