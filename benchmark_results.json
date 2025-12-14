@@ -32,5 +32,94 @@
     "verdict_notes": "[]",
     "timestamp": "2025-12-13 22:38:01",
     "errors": []
+  },
+  {
+    "game_id": "40900205",
+    "iteration": 3,
+    "duration": 39.621633529663086,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.8333333333333334
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Chaos Header (Fallback)"
+    },
+    "verdict_notes": "[\"STYLE: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so.\"]",
+    "timestamp": "2025-12-13 22:38:41",
+    "errors": [
+      "STYLE: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so."
+    ]
+  },
+  {
+    "game_id": "41300143",
+    "iteration": 1,
+    "duration": 48.61890006065369,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.0
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (18 -> 68 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:39:30",
+    "errors": []
+  },
+  {
+    "game_id": "41300143",
+    "iteration": 2,
+    "duration": 38.97392392158508,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.0
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Slump (19 -> 0 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:40:09",
+    "errors": []
+  },
+  {
+    "game_id": "41300143",
+    "iteration": 3,
+    "duration": 48.42400121688843,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.0
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Slump (16 -> 0 pts)"
+    },
+    "verdict_notes": "[]",
+    "timestamp": "2025-12-13 22:40:57",
+    "errors": []
+  },
+  {
+    "game_id": "40300214",
+    "iteration": 1,
+    "duration": 48.8109016418457,
+    "status": "WARN",
+    "revisions": 1,
+    "metrics": {
+      "recall": 0.42857142857142855
+    },
+    "red_team": {
+      "active": true,
+      "attack": "[Poisoned] Star Inflation (8 -> 58 pts)"
+    },
+    "verdict_notes": "[\"STYLE: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so.\"]",
+    "timestamp": "2025-12-13 22:41:46",
+    "errors": [
+      "STYLE: Did it use the wrong team name (e.g. calling Warriors 'Raptors')? FAIL immediately if so."
+    ]
   }
 ]

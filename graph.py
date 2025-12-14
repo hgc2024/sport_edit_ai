@@ -67,8 +67,8 @@ def jury_node(state: AgentState):
     # Style feedback just for info, unless we want to enforce it. 
     # Let's enforce it if it's a FAIL.
     if style_res.get("status") == "FAIL":
-        # Maybe strict=False for style? Let's be strict for now.
-        # verdict = "FAIL" 
+        # Strict enforcement for Editor-in-Chief
+        verdict = "FAIL" 
         feedback.append(f"STYLE: {style_res.get('feedback')}")
 
     return {
