@@ -17,7 +17,7 @@ def get_context_analyst():
     parser = JsonOutputParser(pydantic_object=NarrativeBeats)
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are a Senior Sports Analyst. Your job is to identify the 3-5 most important 'story beats' from a game's box score. Return strictly JSON with a single key 'beats' containing a list of strings."),
+        ("system", "You are a Senior Sports Analyst. Your job is to identify 5-8 distinct 'story beats' from a game's box score. Ensure you cover the winner, key player performances, and any significant stats. Return strictly JSON with a single key 'beats' containing a list of strings."),
         ("user", "Stats: {input_stats}\n\nKey Narrative Beats (JSON):")
     ])
     
