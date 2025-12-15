@@ -71,15 +71,16 @@ The "Evaluation Lab" now measures:
 *   **Safety Rate**: % of drafts passing all "Gatekeeper" checks.
 *   **Detailed Logging**: Captures full decision trees (JSON) for all 6 agents.
 
-### 3. Deep Context RAG (New!)
-The system is no longer "amnesiac". We have implemented a **Temporal Context Engine** that replays the entire 20-year history of the NBA to build state-aware context for every game.
+### 3. Deep Context RAG ("The Sports Mind")
+The system implements a sophisticated **Temporal Context Engine** that rebuilds the NBA's narrative state game-by-game.
+*   **Granular Stat Tracking**: Distinguishes between **Regular Season** (82-game grind) and **Postseason** (High stakes) records.
+*   **Series Awareness**: Tracks Playoff Series Scores (e.g., "Warriors lead 3-1") and detects **Elimination Games** or **Championship Clinchers**.
+*   **Historical Memory**: Injects context from previous seasons (e.g., "Defending Champions").
 
 On the first run, the system will automatically:
 1.  Run `utils/build_context.py` (ETL Pipeline).
 2.  Generate thousands of "Context Snapshots" (JSON) in `context_cache/`.
-3.  Inject **Season Records**, **Winning Streaks**, and **Series History** into the Writer's prompt.
-
-This allows the AI to write sentences like *"The Suns snapped a 3-game losing streak..."* based on actual historical data.
+3.  Inject this narrative richness into the Writer's prompt.
 
 ## 💻 CLI Benchmark Suite (Robust Testing)
 For automated, overnight testing, use the included batch script. This runs the evaluation in "Headless Mode" and generates a `benchmark_results_report.md`.
@@ -93,9 +94,9 @@ run_evaluation.bat --batch_size 100 --iterations 3 --red_team --recall
 
 ### Arguments:
 *   `--batch_size`: Number of distinct games to test.
-*   `--iterations`: How many times to re-run the *same* game (tests consistency/variance).
-*   `--red_team`: Enables **Adversarial Data Poisoning** (Score Swapping, Star Inflation) to test Jury resilience.
-*   `--recall`: Enables **Semantic Fact Verification** using a secondary Analyst agent (Mistral).completeness checking.
+*   `--iterations`: Re-runs per game to test variance.
+*   `--red_team`: Activates **Targeted Adversarial Attacks**. The system generates 6 poisoned drafts per game (Toxic, Biased, Hallucinated, etc.) to specifically stress-test EACH Jurist agent.
+*   `--recall`: Enables Semantic Fact Verification.
 *   **Output**: Generates a professional `benchmark_results_report.md` with grades and failure analysis.
 
 ## 📊 Logic Flow
